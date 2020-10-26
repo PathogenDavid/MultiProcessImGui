@@ -5,7 +5,21 @@
 #include <stdio.h>
 #include <Windows.h>
 
+// Enables the use of the bump pointer allocator
+// This allocator is mostly only testing. It cannot free memory.
 //#define USE_BUMP_POINTER_ALLOCATOR
+// Enables the use of a slightly modified version of dlmalloc for the allocator.
+// This allocator is robust and widely used. It doesn't support concurrent use which is fine in our case.
+// The version in this repository is modified to fail if it needs to allocate more virtual memory pages, and it will never try to decommit pages it already has.
+// As such, it's not the most efficient allocator ever in terms of virtual memory usage.
+#define USE_DLMALLOC_ALLOCATOR
+// If neither of the above allocators are enabled, a very lazily implemented heap allacator will be used.
+// This allocator is very simple but extremely inefficient.
+// (It uses a single linked list for all memory chunks, so worst case allocating is O(n) where N is the number of memory chunks, free and allocated.)
+
+#ifdef USE_DLMALLOC_ALLOCATOR
+#include "dlmalloc.h"
+#endif
 
 void WindowsAssert(bool test)
 {
@@ -31,6 +45,8 @@ struct HeapHeader
     bool ClientIsConnected;
 #ifdef USE_BUMP_POINTER_ALLOCATOR
     char* NextAlloc;
+#elif defined(USE_DLMALLOC_ALLOCATOR)
+    mspace Space;
 #else
     HeapChunk FirstChunk;
 #endif
@@ -45,6 +61,8 @@ static void* Allocate(size_t size, void*)
     void* ret = SharedHeap->NextAlloc;
     SharedHeap->NextAlloc += size;
     return ret;
+#elif defined(USE_DLMALLOC_ALLOCATOR)
+    return mspace_malloc(SharedHeap->Space, size);
 #else
     // Find the first free chunk which has enough space
     HeapChunk* chunk = &SharedHeap->FirstChunk;
@@ -99,7 +117,10 @@ static void* Allocate(size_t size, void*)
 
 static void Free(void* pointer, void*)
 {
-#ifndef USE_BUMP_POINTER_ALLOCATOR
+#ifdef USE_BUMP_POINTER_ALLOCATOR
+#elif defined(USE_DLMALLOC_ALLOCATOR)
+    mspace_free(SharedHeap->Space, pointer);
+#else
     if (pointer == nullptr)
     {
         return;
@@ -175,6 +196,9 @@ static void Common_Initialize(bool isServer)
     {
 #ifdef USE_BUMP_POINTER_ALLOCATOR
         SharedHeap->NextAlloc = (char*)(SharedHeap + 1);
+#elif defined(USE_DLMALLOC_ALLOCATOR)
+        void* base = (char*)(SharedHeap + 1);
+        SharedHeap->Space = create_mspace_with_base(base, SHARED_HEAP_SIZE - sizeof(HeapHeader), 0);
 #else
         SharedHeap->FirstChunk.IsFree = true;
         SharedHeap->FirstChunk.NextChunk = nullptr;

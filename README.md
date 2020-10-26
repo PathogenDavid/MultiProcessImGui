@@ -7,13 +7,15 @@ This repository contains a proof-of-concept experiment that shares a single [Dea
 
 It works by mapping a segment of shared memory between the two processes and registering a custom allocator with ImGui that allocates memory exclusively from that shared memory. The shared memory is mapped to the same address in both processes so ImGui's internal pointers match up. This works because ImGui does not ever retain pointers to anything you pass into it (at least not as far as I'm aware.) A pair of shared events are provided to synchronize when the client process is allowed to submit UI and to signal when it is done.
 
-Keep in mind this is a proof-of-concept. The heap allocator is inefficient and absolutely terrible. Many simple edge cases are not handled at all. (For instance, starting multiple clients will cause massive corruption, the server does not handle clients going away, the clients only handle the server going away by accident, etc.) You should only use this repo as an example that this is possible and to provide a starting point for your own more robust implementation.
+Keep in mind this is a proof-of-concept. ~~The heap allocator is inefficient and absolutely terrible.~~ The heap allocator is an abused version of [dlmalloc](http://gee.cs.oswego.edu/dl/html/malloc.html) that doesn't decommit pages. Many simple edge cases are not handled at all. (For instance, starting multiple clients will cause massive corruption, the server does not handle clients going away, the clients only handle the server going away by accident, etc.) You should only use this repo as an example that this is possible and to provide a starting point for your own more robust implementation.
 
 ## License
 
 Most of this project is licensed under The Unlicense license. [See the license file for details](LICENSE.txt).
 
 [`ServerMain.cpp`](MultiProcessImGui/ServerMain.cpp) is adapted from Dear ImGui's sample code and is licensed under [the MIT License](THIRD-PARTY-NOTICES.md).
+
+[`dlmalloc.c`](MultiProcessImGui/dlmalloc.c) / [`dlmalloc.h`](MultiProcessImGui/dlmalloc.h) are slightly modified versions of dlmalloc and are licensed under [CC0](THIRD-PARTY-NOTICES.md).
 
 Additionally, this project depends on Dear ImGui, which is licensed under the terms of the MIT License. [See the third-party notice listing for details](THIRD-PARTY-NOTICES.md).
 

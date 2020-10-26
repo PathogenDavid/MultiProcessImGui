@@ -23,6 +23,7 @@
     <ClCompile Include="ClientMain.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MultiProcessImGui.cpp" />
+    <ClCompile Include="dlmalloc.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\external\imgui\imconfig.h">
@@ -50,6 +51,8 @@
       <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="MultiProcessImGui.h" />
+    <ClInclude Include="dlmalloc.h" />
+    <ClInclude Include="dlmalloc-config.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
