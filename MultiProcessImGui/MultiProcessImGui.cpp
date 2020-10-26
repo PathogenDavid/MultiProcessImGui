@@ -263,7 +263,6 @@ void Client_Shutdown()
 
 void Server_SubmitClients()
 {
-#if 1
     if (!SharedHeap->ClientIsConnected)
     {
         return;
@@ -274,19 +273,6 @@ void Server_SubmitClients()
     WindowsAssert(SetEvent(SubmitClientEvent));
     // Wait for the client to finish submitting
     WindowsAssert(WaitForSingleObject(ClientFinishedEvent, INFINITE) == WAIT_OBJECT_0);
-#else
-    static bool showDemoWindow = false;
-    ImGui::Begin("Client Window");
-    ImGui::Text("Hello from the client process!");
-    ImGui::Text("PID: %d", GetCurrentProcessId());
-    ImGui::Checkbox("Show demo window", &showDemoWindow);
-    ImGui::End();
-
-    if (showDemoWindow)
-    {
-        ImGui::ShowDemoWindow(&showDemoWindow);
-    }
-#endif
 }
 
 void Client_FrameStart()
@@ -299,9 +285,4 @@ void Client_FrameEnd()
 {
     // Tell the server we're done submitting
     WindowsAssert(SetEvent(ClientFinishedEvent));
-}
-
-void StartClientProcess()
-{
-    //CreateProcess
 }

@@ -83,7 +83,6 @@ void ServerMain()
 
     // Setup Dear ImGui context
     Server_Initialize();
-    StartClientProcess();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking

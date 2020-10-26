@@ -8,5 +8,3 @@ void Client_Initialize();
 void Client_FrameStart();
 void Client_FrameEnd();
 void Client_Shutdown();
-
-void StartClientProcess();
